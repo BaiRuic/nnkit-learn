@@ -1,8 +1,8 @@
 from . import ndarray_backend_cpu
-import numpy as np
 import math
 from enum import Enum
 import numbers
+from typing import List
 
 def is_numeric_list(lst):
     for el in lst:
@@ -23,7 +23,31 @@ def flatten(lst):
             result.append(item)
     return result
 
-
+def is_valid_list(lst:List) -> bool:
+    """判断该 列表 是否可以用来创建 ndarray 对象
+    """
+    if isinstance(lst, (list, tuple)):
+        if len(lst) == 0:
+            return False
+        if isinstance(lst[0], (list, tuple)):
+            length = len(lst[0])
+            for sublst in lst:
+                if not isinstance(sublst, (list, tuple)) or len(sublst) != length:
+                    return False
+                if not is_valid_list(sublst):
+                    return False
+            return True
+        elif isinstance(lst[0], numbers.Number):
+            for item in lst:
+                if not isinstance(item, numbers.Number):
+                    return False
+            return True
+        else:
+            return False
+                
+    else:
+        return False
+              
 
 class BackendDevice:
     def __init__(self, name, mod):
@@ -69,22 +93,28 @@ class NDArray:
                 dtype = other.dtype
             self._init(other.to(device) + 0) # deep copy
 
-        elif isinstance(other, np.ndarray):
+        elif type(other).__module__ == "numpy" and type(other).__name__ == 'ndarray':
+            try:
+                import numpy as np
+                print("import numpy")
+            except ModuleNotFoundError as mnf:
+                raise mnf
             device = device if device else default_device()
             if dtype:
                 other = other.astype(dtype)
             dtype = str(other.dtype)
-            array = self.make(shape=other.shape, device=device, dtype=dtype)
+            array = self.make(shape=other.shape, device=device, dtype=dtype)        
             array._device.from_numpy(np.ascontiguousarray(other), array._handle)
             self._init(array)
             
         elif isinstance(other, list):
-            """  目前无法应对不均匀数组以及浮点型到整形的存储问题。
             device = device if device else default_device()
             dtype = dtype if dtype else default_dtype()
 
             if not is_numeric_list(other):
                 raise ValueError("Invalid item in list! The item in list must be numeric")
+            if not is_valid_list(other):
+                raise ValueError("Invalid list")
             # calculate the shape of list
             cur_shape = []
             cur_lst = other
@@ -96,18 +126,20 @@ class NDArray:
             array = self.make(shape=cur_shape, device=device, dtype=dtype)
             # Flatten the list
             other = flatten(other)
+            if "int" in dtype:
+                other = list(map(int, other))
             array._device.from_pylist(other, array._handle)
             self._init(array)
-            """
-
+        else:
+            try:
+                import numpy as np
+            except ModuleNotFoundError as mnf:
+                raise mnf
             try:
                 array = NDArray(np.array(other, dtype=dtype), device=device, dtype=dtype)
                 self._init(array)
             except ValueError as r:
                 raise r
-        else:
-            array = NDArray(np.array(other), device=device, dtype=dtype)
-            self._init(array)
 
     def _init(self, other):
         self._shape = other._shape
@@ -145,21 +177,56 @@ class NDArray:
         
         return array
     
-    def __repr__(self) -> str:
-        return "NDArray(" + self.numpy().__str__() + f", device={self._device}, dtype={self._dtype})"
-    
-    def numpy(self):
-        return self._device.to_numpy(self._handle, self._shape, self._strides, self._offset)
-    
+    def astype(self, dtype):
+        array = self.make(shape=self._shape, 
+                        device=self._device, 
+                        dtype=dtype)
+        array._device.from_handle(self._handle, array._handle)
+        
+        return NDArray(self.numpy(), device=self._device, dtype=dtype)
+
     def to(self, device):
         if device == self._device:
             return self
         else:
             return NDArray(self.numpy(), dtype=self.dtype, sdevice=device)
+
+    ### Properies and string representations
+
+    def __repr__(self) -> str:
+        return "NDArray(" + self.numpy().__str__() + f", device={self._device}, dtype={self._dtype})"
+    
+    def __str__(self) -> str:
+        return self.numpy().__str__()
+
+    def numpy(self):
+        return self._device.to_numpy(self._handle, self._shape, self._strides, self._offset)
     
     @property
     def dtype(self):
         return self._dtype
 
-    def astype(self, dtype):
-        return NDArray(self.numpy(), device=self._device, dtype=dtype)
+    @property
+    def shape(self):
+        return self._shape
+    
+    @property
+    def strides(self):
+        return self._strides
+    
+    @property
+    def device(self):
+        return self._device
+    
+    @property
+    def ndim(self):
+        return len(self._shape)
+    
+    @property
+    def size(self):
+        return math.prod(self._shape)
+
+    ### Basic array manipulation
+    def fill(self, value):
+        "Fill with a constant value"
+        self._device.fill(self._handle, value)
