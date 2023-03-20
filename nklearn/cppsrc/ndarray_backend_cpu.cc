@@ -30,6 +30,18 @@ public:
     }
 };
 
+template<typename T>
+void Fill(AlignedArray<T> *out, T val){
+    /*
+    * Fill the values of an aligned value with val
+    */
+   for (size_t i=0; i < out->size; i++ ){
+    out->ptr[i] = val;
+   }
+}
+
+
+
 
 namespace py = pybind11;
 
@@ -124,4 +136,7 @@ PYBIND11_MODULE(ndarray_backend_cpu, m){
     m.def("to_numpy", to_numpy<uint16_t>);
     m.def("to_numpy", to_numpy<uint32_t>);
     m.def("to_numpy", to_numpy<uint64_t>);
+
+    m.def("fill", Fill<_Float32>);
+    m.def("fill", Fill<int32_t>);
 }
