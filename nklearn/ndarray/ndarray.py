@@ -191,10 +191,11 @@ class NDArray:
         return NDArray(self, dtype=dtype, device=self._device)
 
     def to(self, device):
+        device = device if device else default_device()
         if device == self._device:
             return self
         else:
-            return NDArray(self.tonumpy(), dtype=self.dtype, device=device)
+            return NDArray(self, dtype=self.dtype, device=device)
 
     ### Properies and string representations
 
