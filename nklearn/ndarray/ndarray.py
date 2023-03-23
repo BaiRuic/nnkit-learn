@@ -183,25 +183,33 @@ class NDArray:
                         dtype=dtype)
         array._device.from_handle(self._handle, array._handle)
         
-        return NDArray(self.numpy(), device=self._device, dtype=dtype)
+        return NDArray(self.tonumpy(), device=self._device, dtype=dtype)
 
     def to(self, device):
         if device == self._device:
             return self
         else:
-            return NDArray(self.numpy(), dtype=self.dtype, sdevice=device)
+            return NDArray(self.tonumpy(), dtype=self.dtype, sdevice=device)
 
     ### Properies and string representations
 
     def __repr__(self) -> str:
-        return "NDArray(" + self.numpy().__str__() + f", device={self._device}, dtype={self._dtype})"
+        return "NDArray(" + self.tonumpy().__str__() + f", device={self._device}, dtype={self._dtype})"
     
     def __str__(self) -> str:
-        return self.numpy().__str__()
+        return self.tonumpy().__str__()
 
-    def numpy(self):
+    def tonumpy(self):
         return self._device.to_numpy(self._handle, self._shape, self._strides, self._offset)
     
+    def tolist(self):
+        try:
+            import numpy as np
+            temp_ndarray = self.tonumpy()
+            return temp_ndarray.tolist()
+        except ModuleNotFoundError:
+            return self._device.to_list(self._handle, self._shape, self._strides, self._offset)
+
     @property
     def dtype(self):
         return self._dtype

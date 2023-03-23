@@ -77,6 +77,42 @@ py::array_t<T> to_numpy(const AlignedArray<T>& a,
     return py::array_t<T>(shape, real_strides, a.ptr+offset); 
 }
 
+
+template<typename T>
+py::list arrayToList(py::array_t<T> array) {
+    
+    auto buf = array.request();
+    T * ptr = (T*) buf.ptr;
+    size_t itemsize = buf.itemsize;
+    if (buf.ndim == 1){
+        py::list lst;
+        for (size_t i=0; i<buf.shape[0]; i++)
+            lst.append(ptr[i * buf.strides[0] / itemsize]);
+        return lst
+    }else{
+        py::list inner;
+        // size_t stride = buf.strides[0] / sizeof(T);
+        for (size_t i=0; i<buf.shape[0]; i++){
+            py::array_t<T> sub_arr = py::array_t<T>(
+                    std::vector<size_t>(buf.shape.begin() + 1, buf.shape.end()),
+                    std::vector<size_t>(buf.strides.begin() + 1, buf.strides.end()),
+                    ptr + i * buf.strides[0] / itemsize
+                );
+            inner.append(arrayToList<T>(sub_arr));
+        }
+        return inner;
+    }
+}
+
+template<typename T>
+py::list to_list(const AlignedArray<T>& a,
+                    std::vector<size_t> shape, 
+                    std::vector<size_t> strides, size_t offset){
+        
+    py::array_t<T> arr = to_numpy<T>(a, shape, strides, offset);
+    return arrayToList<T>(arr);
+}
+
 } //namespace cpu
 } // namespace nklearn
 
@@ -136,6 +172,18 @@ PYBIND11_MODULE(ndarray_backend_cpu, m){
     m.def("to_numpy", to_numpy<uint16_t>);
     m.def("to_numpy", to_numpy<uint32_t>);
     m.def("to_numpy", to_numpy<uint64_t>);
+
+    //m.def("to_list", to_list<_Float16>);
+    m.def("to_list", to_list<_Float32>);
+    m.def("to_list", to_list<_Float64>);
+    m.def("to_list", to_list<int8_t>);
+    m.def("to_list", to_list<int16_t>);
+    m.def("to_list", to_list<int32_t>);
+    m.def("to_list", to_list<int64_t>);
+    m.def("to_list", to_list<uint8_t>);
+    m.def("to_list", to_list<uint16_t>);
+    m.def("to_list", to_list<uint32_t>);
+    m.def("to_list", to_list<uint64_t>);
 
     m.def("fill", Fill<_Float32>);
     m.def("fill", Fill<int32_t>);
