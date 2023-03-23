@@ -244,3 +244,20 @@ class NDArray:
     def fill(self, value):
         "Fill with a constant value"
         self._device.fill(self._handle, value)
+
+    def is_compact(self):
+        """Return true if array is compact in memory and internal size equals product
+        of the shape dimensions"""
+        return (self._strides == self.compact_strides(self._shape)
+                and math.prod(self.shape) == self._handle.size)
+
+    def compact(self):
+        """ Convert a matrix to be compact """
+        if self.is_compact():
+            return self
+        else:
+            out = NDArray.make(self.shape, device=self.device)
+            self.device.compact(
+                self._handle, out._handle, self.shape, self.strides, self._offset
+            )
+            return out

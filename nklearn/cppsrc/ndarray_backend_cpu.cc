@@ -40,7 +40,54 @@ void Fill(AlignedArray<T> *out, T val){
    }
 }
 
+template<typename T>
+void Compact(const AlignedArray<T>& a, AlignedArray<T>* out, std::vector<uint32_t> shape,
+             std::vector<uint32_t> strides, size_t offset) {
+  /**
+   * Compact an array in memory
+   *
+   * Args:
+   *   a: non-compact representation of the array, given as input
+   *   out: compact version of the array to be written
+   *   shape: shapes of each dimension for a and out
+   *   strides: strides of the *a* array (not out, which has compact strides)
+   *   offset: offset of the *a* array (not out, which has zero offset, being compact)
+   *
+   * Returns:
+   *  void (you need to modify out directly, rather than returning anything; this is true for all the
+   *  function will implement here, so we won't repeat this note.)
+   */
+  /// BEGIN YOUR SOLUTION
+  size_t max_loop = strides.size();
+  size_t cnt = 0;
+  std::vector<uint16_t> stack;
 
+  // 将原始数组中的元素复制到压缩后数组中的指定位置
+  auto func = [&](std::vector<uint16_t>& stack) {
+    size_t idx = offset;
+    for(size_t i=0; i < stack.size(); i++){
+      idx += strides[i] * stack[i];
+    }
+    (*out).ptr[cnt++] = a.ptr[idx];
+  };
+  
+  // 多重循环
+  std::function<void(size_t, size_t)> nested_for_loop = [&](size_t n, size_t max_n) {
+  // void nested_for_loop(size_t n, size_t max_n) {
+    if (n == max_n){
+      func(stack);
+      return;
+    }
+    for (size_t i=0; i < shape[n]; i++){
+      stack.push_back(i);
+      nested_for_loop(n+1, max_n);
+      stack.pop_back();
+    }
+  };
+
+  nested_for_loop(0, max_loop); 
+  /// END YOUR SOLUTION
+}
 
 
 namespace py = pybind11;
@@ -304,5 +351,24 @@ PYBIND11_MODULE(ndarray_backend_cpu, m){
     m.def("to_list", to_list<uint64_t>);
 
     m.def("fill", Fill<_Float32>);
+    m.def("fill", Fill<_Float64>);
+    m.def("fill", Fill<int8_t>);
+    m.def("fill", Fill<int16_t>);
     m.def("fill", Fill<int32_t>);
+    m.def("fill", Fill<int64_t>);
+    m.def("fill", Fill<uint8_t>);
+    m.def("fill", Fill<uint16_t>);
+    m.def("fill", Fill<uint32_t>);
+    m.def("fill", Fill<uint64_t>);
+
+    m.def("compact", Compact<_Float32>);
+    m.def("compact", Compact<_Float64>);
+    m.def("compact", Compact<int8_t>);
+    m.def("compact", Compact<int16_t>);
+    m.def("compact", Compact<int32_t>);
+    m.def("compact", Compact<int64_t>);
+    m.def("compact", Compact<uint8_t>);
+    m.def("compact", Compact<uint16_t>);
+    m.def("compact", Compact<uint32_t>);
+    m.def("compact", Compact<uint64_t>);
 }
