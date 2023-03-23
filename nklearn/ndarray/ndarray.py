@@ -83,15 +83,21 @@ def default_device():
 
 class NDArray:
     def __init__(self, other, device=None, dtype=None):
-        if dtype not in dtypes:
+        if dtype and dtype not in dtypes:
             raise TypeError('Could not find %s in dtypes' % (dtype))
 
         if isinstance(other, NDArray):
+            if dtype is None:
+                dtype = other._dtype
             if device is None:
                 device = other.device
-            if dtype is None:
-                dtype = other.dtype
-            self._init(other.to(device) + 0) # deep copy
+
+            array = self.make(shape=other._shape, 
+                                device=device, 
+                                dtype=dtype)
+            
+            array._device.from_handle(other._handle, array._handle)
+            self._init(array)
 
         elif type(other).__module__ == "numpy" and type(other).__name__ == 'ndarray':
             try:
@@ -130,17 +136,19 @@ class NDArray:
                 other = list(map(int, other))
             array._device.from_pylist(other, array._handle)
             self._init(array)
+
         else:
             try:
+                dtype = dtype if dtype else default_dtype()
+                device = device if device else default_device()
                 import numpy as np
-            except ModuleNotFoundError as mnf:
-                raise mnf
-            try:
                 array = NDArray(np.array(other, dtype=dtype), device=device, dtype=dtype)
                 self._init(array)
+            except ModuleNotFoundError as mnf:
+                raise mnf
             except ValueError as r:
                 raise r
-
+        
     def _init(self, other):
         self._shape = other._shape
         self._strides = other._strides
@@ -178,18 +186,15 @@ class NDArray:
         return array
     
     def astype(self, dtype):
-        array = self.make(shape=self._shape, 
-                        device=self._device, 
-                        dtype=dtype)
-        array._device.from_handle(self._handle, array._handle)
-        
-        return NDArray(self.tonumpy(), device=self._device, dtype=dtype)
+        if dtype is None:
+            dtype = default_dtype()
+        return NDArray(self, dtype=dtype, device=self._device)
 
     def to(self, device):
         if device == self._device:
             return self
         else:
-            return NDArray(self.tonumpy(), dtype=self.dtype, sdevice=device)
+            return NDArray(self.tonumpy(), dtype=self.dtype, device=device)
 
     ### Properies and string representations
 

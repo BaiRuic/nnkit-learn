@@ -55,6 +55,12 @@ void from_pylist(std::vector<T> a, AlignedArray<T> * out){
     std::memcpy(out->ptr, a.data(), out->size * sizeof(T));
 }
 
+template<typename T1, typename T2>
+void from_handle(AlignedArray<T1> * a, AlignedArray<T2> * out){
+    for(size_t i = 0; i < out->size; i++)
+        out->ptr[i] = (T2)a->ptr[i];
+}
+
 
 template<typename T>
 void declare_array(py::module &m, const std::string &typestr) {
@@ -88,7 +94,7 @@ py::list arrayToList(py::array_t<T> array) {
         py::list lst;
         for (size_t i=0; i<buf.shape[0]; i++)
             lst.append(ptr[i * buf.strides[0] / itemsize]);
-        return lst
+        return lst;
     }else{
         py::list inner;
         // size_t stride = buf.strides[0] / sizeof(T);
@@ -160,6 +166,118 @@ PYBIND11_MODULE(ndarray_backend_cpu, m){
     m.def("from_pylist", from_pylist<uint16_t>);
     m.def("from_pylist", from_pylist<uint32_t>);
     m.def("from_pylist", from_pylist<uint64_t>);
+
+        //m.def("from_handle", from_handle<T1, T2>);
+    m.def("from_handle", from_handle<_Float32, _Float32>);
+    m.def("from_handle", from_handle<_Float32, _Float64>);
+    m.def("from_handle", from_handle<_Float32, int8_t>);
+    m.def("from_handle", from_handle<_Float32, int16_t>);
+    m.def("from_handle", from_handle<_Float32, int32_t>);
+    m.def("from_handle", from_handle<_Float32, int64_t>);
+    m.def("from_handle", from_handle<_Float32, uint8_t>);
+    m.def("from_handle", from_handle<_Float32, uint16_t>);
+    m.def("from_handle", from_handle<_Float32, uint32_t>);
+    m.def("from_handle", from_handle<_Float32, uint64_t>);
+    m.def("from_handle", from_handle<_Float64, _Float32>);
+    m.def("from_handle", from_handle<_Float64, _Float64>);
+    m.def("from_handle", from_handle<_Float64, int8_t>);
+    m.def("from_handle", from_handle<_Float64, int16_t>);
+    m.def("from_handle", from_handle<_Float64, int32_t>);
+    m.def("from_handle", from_handle<_Float64, int64_t>);
+    m.def("from_handle", from_handle<_Float64, uint8_t>);
+    m.def("from_handle", from_handle<_Float64, uint16_t>);
+    m.def("from_handle", from_handle<_Float64, uint32_t>);
+    m.def("from_handle", from_handle<_Float64, uint64_t>);
+    m.def("from_handle", from_handle<_Float64, _Float32>);
+    m.def("from_handle", from_handle<_Float64, _Float64>);
+    m.def("from_handle", from_handle<_Float64, int8_t>);
+    m.def("from_handle", from_handle<_Float64, int16_t>);
+    m.def("from_handle", from_handle<_Float64, int32_t>);
+    m.def("from_handle", from_handle<_Float64, int64_t>);
+    m.def("from_handle", from_handle<_Float64, uint8_t>);
+    m.def("from_handle", from_handle<_Float64, uint16_t>);
+    m.def("from_handle", from_handle<_Float64, uint32_t>);
+    m.def("from_handle", from_handle<_Float64, uint64_t>);
+    m.def("from_handle", from_handle<int8_t, _Float32>);
+    m.def("from_handle", from_handle<int8_t, _Float64>);
+    m.def("from_handle", from_handle<int8_t, int8_t>);
+    m.def("from_handle", from_handle<int8_t, int16_t>);
+    m.def("from_handle", from_handle<int8_t, int32_t>);
+    m.def("from_handle", from_handle<int8_t, int64_t>);
+    m.def("from_handle", from_handle<int8_t, uint8_t>);
+    m.def("from_handle", from_handle<int8_t, uint16_t>);
+    m.def("from_handle", from_handle<int8_t, uint32_t>);
+    m.def("from_handle", from_handle<int8_t, uint64_t>);
+    m.def("from_handle", from_handle<int16_t, _Float32>);
+    m.def("from_handle", from_handle<int16_t, _Float64>);
+    m.def("from_handle", from_handle<int16_t, int8_t>);
+    m.def("from_handle", from_handle<int16_t, int16_t>);
+    m.def("from_handle", from_handle<int16_t, int32_t>);
+    m.def("from_handle", from_handle<int16_t, int64_t>);
+    m.def("from_handle", from_handle<int16_t, uint8_t>);
+    m.def("from_handle", from_handle<int16_t, uint16_t>);
+    m.def("from_handle", from_handle<int16_t, uint32_t>);
+    m.def("from_handle", from_handle<int16_t, uint64_t>);
+    m.def("from_handle", from_handle<int32_t, _Float32>);
+    m.def("from_handle", from_handle<int32_t, _Float64>);
+    m.def("from_handle", from_handle<int32_t, int8_t>);
+    m.def("from_handle", from_handle<int32_t, int16_t>);
+    m.def("from_handle", from_handle<int32_t, int32_t>);
+    m.def("from_handle", from_handle<int32_t, int64_t>);
+    m.def("from_handle", from_handle<int32_t, uint8_t>);
+    m.def("from_handle", from_handle<int32_t, uint16_t>);
+    m.def("from_handle", from_handle<int32_t, uint32_t>);
+    m.def("from_handle", from_handle<int32_t, uint64_t>);
+    m.def("from_handle", from_handle<int64_t, _Float32>);
+    m.def("from_handle", from_handle<int64_t, _Float64>);
+    m.def("from_handle", from_handle<int64_t, int8_t>);
+    m.def("from_handle", from_handle<int64_t, int16_t>);
+    m.def("from_handle", from_handle<int64_t, int32_t>);
+    m.def("from_handle", from_handle<int64_t, int64_t>);
+    m.def("from_handle", from_handle<int64_t, uint8_t>);
+    m.def("from_handle", from_handle<int64_t, uint16_t>);
+    m.def("from_handle", from_handle<int64_t, uint32_t>);
+    m.def("from_handle", from_handle<int64_t, uint64_t>);
+    m.def("from_handle", from_handle<uint8_t, _Float32>);
+    m.def("from_handle", from_handle<uint8_t, _Float64>);
+    m.def("from_handle", from_handle<uint8_t, int8_t>);
+    m.def("from_handle", from_handle<uint8_t, int16_t>);
+    m.def("from_handle", from_handle<uint8_t, int32_t>);
+    m.def("from_handle", from_handle<uint8_t, int64_t>);
+    m.def("from_handle", from_handle<uint8_t, uint8_t>);
+    m.def("from_handle", from_handle<uint8_t, uint16_t>);
+    m.def("from_handle", from_handle<uint8_t, uint32_t>);
+    m.def("from_handle", from_handle<uint8_t, uint64_t>);
+    m.def("from_handle", from_handle<uint16_t, _Float32>);
+    m.def("from_handle", from_handle<uint16_t, _Float64>);
+    m.def("from_handle", from_handle<uint16_t, int8_t>);
+    m.def("from_handle", from_handle<uint16_t, int16_t>);
+    m.def("from_handle", from_handle<uint16_t, int32_t>);
+    m.def("from_handle", from_handle<uint16_t, int64_t>);
+    m.def("from_handle", from_handle<uint16_t, uint8_t>);
+    m.def("from_handle", from_handle<uint16_t, uint16_t>);
+    m.def("from_handle", from_handle<uint16_t, uint32_t>);
+    m.def("from_handle", from_handle<uint16_t, uint64_t>);
+    m.def("from_handle", from_handle<uint32_t, _Float32>);
+    m.def("from_handle", from_handle<uint32_t, _Float64>);
+    m.def("from_handle", from_handle<uint32_t, int8_t>);
+    m.def("from_handle", from_handle<uint32_t, int16_t>);
+    m.def("from_handle", from_handle<uint32_t, int32_t>);
+    m.def("from_handle", from_handle<uint32_t, int64_t>);
+    m.def("from_handle", from_handle<uint32_t, uint8_t>);
+    m.def("from_handle", from_handle<uint32_t, uint16_t>);
+    m.def("from_handle", from_handle<uint32_t, uint32_t>);
+    m.def("from_handle", from_handle<uint32_t, uint64_t>);
+    m.def("from_handle", from_handle<uint64_t, _Float32>);
+    m.def("from_handle", from_handle<uint64_t, _Float64>);
+    m.def("from_handle", from_handle<uint64_t, int8_t>);
+    m.def("from_handle", from_handle<uint64_t, int16_t>);
+    m.def("from_handle", from_handle<uint64_t, int32_t>);
+    m.def("from_handle", from_handle<uint64_t, int64_t>);
+    m.def("from_handle", from_handle<uint64_t, uint8_t>);
+    m.def("from_handle", from_handle<uint64_t, uint16_t>);
+    m.def("from_handle", from_handle<uint64_t, uint32_t>);
+    m.def("from_handle", from_handle<uint64_t, uint64_t>);
 
     //m.def("to_numpy", to_numpy<_Float16>);
     m.def("to_numpy", to_numpy<_Float32>);
