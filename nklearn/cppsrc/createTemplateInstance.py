@@ -5,8 +5,8 @@ types = ["int8_t", "int16_t", "int32_t", "int64_t",
          "_Float32", "_Float64"]
 
 types = ["int32_t", "int64_t",
-         "uint32_t", "uint64_t",
-         "_Float64"]
+         "uint8_t", "uint32_t", "uint64_t",
+         "_Float32", "_Float64"]
 
 def generateOneType(oneTypeName):
     res = []
