@@ -253,7 +253,7 @@ void EwiseMaximum(const AlignedArray<T1>& a, const AlignedArray<T2>& b, AlignedA
    * Set entries in out to be the mul of corresponding entires in a and b.
    */
   for (size_t i = 0; i < a.size; i++) {
-    out->ptr[i] = static_cast<T3>(std::max(a.ptr[i], b.ptr[i]));
+    out->ptr[i] = std::max(static_cast<T3>(a.ptr[i]), static_cast<T3>(b.ptr[i]));
   }
 }
 
@@ -263,7 +263,7 @@ void ScalarMaximum(const AlignedArray<T1>& a, T2 val, AlignedArray<T3>* out) {
    * Set entries in out to be the sum of corresponding entry in a multiply the scalar val.
    */
   for (size_t i = 0; i < a.size; i++) {
-    out->ptr[i] = static_cast<T3>(std::max(a.ptr[i], val));
+    out->ptr[i] = std::max(static_cast<T3>(a.ptr[i]), static_cast<T3>(val));
   }
 }
 
@@ -308,8 +308,8 @@ void ScalarGe(const AlignedArray<T1>& a, T2 val, AlignedArray<uint8_t>* out) {
 }
 
 
-template<typename T>
-void EwiseLog(const AlignedArray<T>& a, AlignedArray<_Float64>* out) {
+template<typename T1, typename T2>
+void EwiseLog(const AlignedArray<T1>& a, AlignedArray<T2>* out) {
   /**
    * Set entries in out to be the mul of corresponding entires in a and b.
    */
@@ -328,8 +328,8 @@ void EwiseExp(const AlignedArray<T>& a, AlignedArray<T>* out) {
   }
 }
 
-template<typename T>
-void EwiseTanh(const AlignedArray<T>& a, AlignedArray<_Float64>* out) {
+template<typename T1, typename T2>
+void EwiseTanh(const AlignedArray<T1>& a, AlignedArray<T2>* out) {
   /**
    * Set entries in out to be the mul of corresponding entires in a and b.
    */
@@ -586,7 +586,6 @@ PYBIND11_MODULE(ndarray_backend_cpu, m){
     // m.def("scalar_setitem", ScalarSetitem<_Float32>);
     // m.def("ewise_add", EwiseAdd<_Float32>);
     // m.def("scalar_add", ScalarAdd<_Float32>);
-
     // m.def("ewise_mul", EwiseMul<_Float32>);
     // m.def("scalar_mul", ScalarMul<_Float32>);
     // m.def("ewise_div", EwiseDiv<_Float32>);
@@ -595,6 +594,7 @@ PYBIND11_MODULE(ndarray_backend_cpu, m){
 
     // m.def("ewise_maximum", EwiseMaximum<_Float32>);
     // m.def("scalar_maximum", ScalarMaximum<_Float32>);
+    
     // m.def("ewise_eq", EwiseEq<_Float32>);
     // m.def("scalar_eq", ScalarEq<_Float32>);
     // m.def("ewise_ge", EwiseGe<_Float32>);
@@ -609,5 +609,6 @@ PYBIND11_MODULE(ndarray_backend_cpu, m){
 
     // m.def("reduce_max", ReduceMax<_Float32>);
     // m.def("reduce_sum", ReduceSum<_Float32>);
+
     #include"templatedCode.cpp"
 }
