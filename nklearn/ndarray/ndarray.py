@@ -1,10 +1,12 @@
-from . import ndarray_backend_cpu
 import math
-from enum import Enum
 import numbers
 from typing import List
+from _device import BackendDevice, cpu, default_device
+from _dtype import dtypes, default_dtype
 
-def is_numeric_list(lst):
+
+
+def is_numeric_list(lst: List) -> bool:
     for el in lst:
         if isinstance(el, list):
             if not is_numeric_list(el):
@@ -13,8 +15,13 @@ def is_numeric_list(lst):
             return False
     return True
 
-
-def flatten(lst):
+def flatten(lst:List) ->bool:
+    """将多维List 拉平为一维
+    param:
+        lst: 多维list
+    return:
+        result:一为list
+    """
     result = []
     for item in lst:
         if isinstance(item, list):
@@ -47,39 +54,7 @@ def is_valid_list(lst:List) -> bool:
                 
     else:
         return False
-              
 
-class BackendDevice:
-    def __init__(self, name, mod):
-        self.name = name
-        self.mod = mod
-    
-    def __eq__(self, __o: object) -> bool:
-        return self.name == __o.name
-    
-    def __repr__(self) -> str:
-        return self.name + "()"
-    
-    def __getattr__(self, name):
-        return getattr(self.mod, name)
-    
-    def enableed(self):
-        return self.mod is not None
-
-dtypes = set(["int8", "int16", "int32", "int64", 
-            "uint8", "uint16", "uint32", "uint64",
-            "float32", "float64"])
-
-
-def default_dtype():
-    return 'float64'
-
-def cpu():
-    "Return cpu device"
-    return BackendDevice('cpu', ndarray_backend_cpu)
-
-def default_device():
-    return cpu()
 
 class NDArray:
     def __init__(self, other, device=None, dtype=None):
