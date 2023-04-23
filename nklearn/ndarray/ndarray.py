@@ -232,7 +232,7 @@ class NDArray:
         if self.is_compact():
             return self
         else:
-            out = NDArray.make(self.shape, device=self.device)
+            out = NDArray.make(self.shape, device=self.device, dtype=self.dtype)
             self.device.compact(
                 self._handle, out._handle, self.shape, self.strides, self._offset
             )
@@ -436,14 +436,50 @@ class NDArray:
             )
 
     ### Collection of elementwise and scalar function: add, multiply, boolean, etc
+    
+    @staticmethod
+    def _type_inference(lhs, rhs) -> str:
+        """类型推断，根据 运算符的左右操作数来推断运算结果的类型
+        """
+        if isinstance(rhs, NDArray):
+            # 两者全为 intx 或者 floatx 或者 uintx时
+            if rhs.dtype[:3] == lhs.dtype[:3]:
+                if len(lhs.dtype) > len(lhs.other):
+                    dtype = lhs.dtype
+                else:
+                    dtype = lhs.dtype if lhs.dtype > rhs.dtype else rhs.dtype
+            else:
+                # 有一个 float,那就是 float
+                if "float" in lhs.dtype or "float" in rhs.dtype:
+                    dtype = lhs.dtype if "float" in lhs.dtype else rhs.dtype
+                else:
+                    dtype = rhs.dtype if "uint" in lhs.dtype else lhs.dtype
+        else:
+            # 两者全为 intx(uintx) 或者 floatx 时
+            if ((isinstance(rhs, float) and "float" in lhs.dtype) or
+                (isinstance(rhs, int) and lhs.dtype[:3] == "int")):
+                dtype = lhs.dtype
+            else:
+                if isinstance(rhs, float):
+                    dtype = default_dtype()
+                else:
+                    if "float" in lhs.dtype:
+                        dtype = lhs.dtype
+                    else:
+                        num_str = []
+                        for c in lhs.dtype:
+                            if c.isdigit():
+                                num_str.append(c)
+                        dtype = "int" + "".join(num_str)
+        return dtype
 
     def ewise_or_scalar(self, other, ewise_func, scalar_func, dtype=None):
         """Run either an element-wise or scalar version of a function,
         depending on whether "other" is an NDArray or scalar
         """
-        # TODO:数据类型应该选择两操作数字中精度较大的
-        # 执行此类运算，数据类型是和做操作数相同
-        out = NDArray.make(self.shape, device=self.device, dtype=dtype if dtype else self.dtype)
+        dtype_ = NDArray._type_inference(self, other)
+        out = NDArray.make(self.shape, device=self.device, dtype=dtype_)
+
         if isinstance(other, NDArray):                
             assert self.shape == other.shape, "operation needs two equal-sized arrays"
             ewise_func(self.compact()._handle, other.compact()._handle, out._handle)
@@ -510,7 +546,7 @@ class NDArray:
 
     def log(self):
         # 如果当前数据类型为浮点型，那么需要和当前数据类型一直，否则为默认类型
-        dtype_ = "float64"
+        dtype_ = self.dtype if "float" in self.dtype else default_dtype()
         out = NDArray.make(self.shape, device=self.device, dtype=dtype_)
         self.device.ewise_log(self.compact()._handle, out._handle)
         return out
@@ -523,8 +559,8 @@ class NDArray:
 
     def tanh(self):
         # 数据类型应该同 log
-        dtype_ = "float64"
-        out = NDArray.make(self.shape, device=self.device)
+        dtype_ = self.dtype if "float" in self.dtype else default_dtype()
+        out = NDArray.make(self.shape, device=self.device, dtype=dtype_)
         self.device.ewise_tanh(self.compact()._handle, out._handle)
         return out
 
@@ -548,7 +584,7 @@ class NDArray:
         assert self.shape[1] == other.shape[0]
 
         m, n, p = self.shape[0], self.shape[1], other.shape[1]
-
+        dtype_ = NDArray._type_inference(self, other)
         # if the matrix is aligned, use tiled matrix multiplication
         if hasattr(self.device, "matmul_tiled") and all(
             d % self.device.__tile_size__ == 0 for d in (m, n, p)
@@ -563,8 +599,7 @@ class NDArray:
             t = self.device.__tile_size__
             a = tile(self.compact(), t).compact()
             b = tile(other.compact(), t).compact()
-            # TODO :数据类型待推导
-            out = NDArray.make((a.shape[0], b.shape[1], t, t), device=self.device, dtype=self.dtype)
+            out = NDArray.make((a.shape[0], b.shape[1], t, t), device=self.device, dtype=dtype_)
             self.device.matmul_tiled(a._handle, b._handle, out._handle, m, n, p)
 
             return (
@@ -575,7 +610,7 @@ class NDArray:
 
         else:
             # TODO :数据类型待推导
-            out = NDArray.make((m, p), device=self.device, dtype=self.dtype)
+            out = NDArray.make((m, p), device=self.device, dtype=dtype_)
             self.device.matmul(
                 self.compact()._handle, other.compact()._handle, out._handle, m, n, p
             )
