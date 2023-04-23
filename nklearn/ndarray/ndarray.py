@@ -1,8 +1,8 @@
 import math
 import numbers
 from typing import List
-from _device import BackendDevice, cpu, default_device
-from _dtype import dtypes, default_dtype
+from  ._device import BackendDevice, cpu, default_device
+from ._dtype import dtypes, default_dtype
 
 
 
