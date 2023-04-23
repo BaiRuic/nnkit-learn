@@ -1,4 +1,6 @@
 from . import ndarray_backend_cpu
+# from .ndarray import NDArray
+from ._dtype import default_dtype
 
 class BackendDevice:
     def __init__(self, name, mod):
@@ -16,6 +18,16 @@ class BackendDevice:
     
     def enableed(self):
         return self.mod is not None
+    
+    def empty(self, shape, dtype=None):
+        dtype = default_dtype() if dtype is None else dtype
+        return NDArray.make(shape, device=self, dtype=dtype)
+
+    def full(self, shape, fill_value, dtype):
+        dtype = default_dtype() if dtype is None else dtype
+        arr = self.empty(shape, dtype=dtype)
+        arr.fill(fill_value)
+        return arr
     
 
 def cpu():

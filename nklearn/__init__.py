@@ -1,1 +1,1 @@
-from .ndarray import *
+from .backend_ndarray import *

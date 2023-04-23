@@ -1,7 +1,7 @@
 import math
 import numbers
 from typing import List
-from  ._device import BackendDevice, cpu, default_device
+from ._device import default_device
 from ._dtype import dtypes, default_dtype
 
 
@@ -653,6 +653,16 @@ def array(a, dtype=None, device=None):
 
     return NDArray(a, device=device, dtype=dtype)
 
+def empty(shape, dtype=None, device=None):
+    device = device if device is not None else default_device()
+    dtype = dtype if dtype is None else default_dtype()
+    return device.empty(shape, dtype)
+
+
+def full(shape, fill_value, dtype=None, device=None):
+    device = device if device is not None else default_device()
+    dtype = dtype if dtype is None else default_dtype()
+    return device.full(shape, fill_value, dtype)
 
 def broadcast_to(array, new_shape):
     return array.broadcast_to(new_shape)
