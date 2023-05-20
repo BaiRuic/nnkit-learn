@@ -1,9 +1,9 @@
 import math
 import numbers
 from typing import List
+
 from ._device import default_device
 from ._dtype import dtypes, default_dtype
-
 
 
 def is_numeric_list(lst: List) -> bool:
@@ -655,7 +655,7 @@ def array(a, dtype=None, device=None):
 
 def empty(shape, dtype=None, device=None):
     device = device if device is not None else default_device()
-    dtype = dtype if dtype is None else default_dtype()
+    dtype = dtype if dtype is not None else default_dtype()
     return device.empty(shape, dtype)
 
 

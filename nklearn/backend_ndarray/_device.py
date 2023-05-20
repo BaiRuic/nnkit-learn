@@ -1,6 +1,7 @@
 from . import ndarray_backend_cpu
-# from .ndarray import NDArray
+from . import ndarray
 from ._dtype import default_dtype
+from ._random import random_array
 
 class BackendDevice:
     def __init__(self, name, mod):
@@ -21,13 +22,24 @@ class BackendDevice:
     
     def empty(self, shape, dtype=None):
         dtype = default_dtype() if dtype is None else dtype
-        return NDArray.make(shape, device=self, dtype=dtype)
+        return ndarray.NDArray.make(shape, device=self, dtype=dtype)
 
     def full(self, shape, fill_value, dtype):
         dtype = default_dtype() if dtype is None else dtype
         arr = self.empty(shape, dtype=dtype)
         arr.fill(fill_value)
         return arr
+    
+    def randn(self, *shape, dtype):
+        # note: numpy doesn't support types within standard random routines, and
+        # .astype("float32") does work if we're generating a singleton
+        dtype = dtype if dtype else default_dtype()
+        return ndarray.NDArray(random_array(*shape, 
+                                    distribution="normalvariate",
+                                    params=(0, 1),
+                                    dtype="float"),
+                        device=self,
+                        dtype=dtype)
     
 
 def cpu():
