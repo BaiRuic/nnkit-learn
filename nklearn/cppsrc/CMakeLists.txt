@@ -14,7 +14,7 @@ execute_process(COMMAND python3 -m pybind11 --cmakedir
   OUTPUT_STRIP_TRAILING_WHITESPACE)
 # if not find pybind in root, just set pybind11_DIR manually.
 if(__pybind_exit_code AND NOT __pybind_exit_code EQUAL 0)
-  set(pybind11_DIR /home/brc/miniconda3/envs/dlsys/lib/python3.8/site-packages/pybind11/share/cmake/pybind11)
+  set(pybind11_DIR /home/brc/miniconda3/envs/ml/lib/python3.9/site-packages/pybind11/share/cmake/pybind11)
 endif()
 
 find_package(pybind11 PATHS ${pybind11_DIR})
@@ -44,7 +44,7 @@ pybind11_strip(ndarray_backend_cpu)
 # directly output to ffi folder
 set_target_properties(ndarray_backend_cpu
   PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../ndarray/
+  LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../backend_ndarray/
   CXX_VISIBILITY_PRESET "hidden"
 )
 
